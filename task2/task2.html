@@ -1,0 +1,215 @@
+<!doctype html>
+<html class="no-js" lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <title>task2</title>
+  <meta name="description" content="">
+  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+  <script>
+    window.jQuery || document.write('<script src="js/vendor/jquery-3.1.0.min.js"><\/script>')
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.3/moment.min.js"></script>
+  <!-- Latest compiled and minified JavaScript -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <!-- Place favicon.ico in the root directory -->
+</head>
+
+<body>
+
+  <div class="container">
+
+    <section class="py-5 text-center container">
+      <div class="row py-lg-5">
+        <div class="col-lg-6 col-md-8 mx-auto">
+          <h1 class="fw-light">RSS feeds</h1>
+          <p class="lead text-muted">Click to load feed</p>
+          <div class="btn-group">
+            <a id="bbc" href="#" class="btn btn-outline-secondary" data-url="https://feeds.bbci.co.uk/news/rss.xml">BBC
+              News</a>
+            <a id="buzz" href="#" class="btn btn-outline-secondary"
+              data-url="https://www.buzzfeed.com/uk/index.xml">Buzzfeed</a>
+            <a id="flip" href="#" class="btn btn-outline-secondary" data-url="https://fliplet.com/feed">Fliplet</a>
+            <a id="ft" href="#" class="btn btn-outline-secondary" data-url="https://www.ft.com/news-feed">FT</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pagination -->
+    <section class="py-5 text-center container">
+      <div class="row py-lg-5">
+        <nav>
+          <ul class="pagination">
+            <li class="page-item disabled">
+              <a class="page-link">Previous</a>
+            </li>
+            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+            <li class="page-item">
+              <a class="page-link" href="#">2</a>
+            </li>
+            <li class="page-item"><a class="page-link" href="#">3</a></li>
+            <li class="page-item">
+              <a class="page-link" href="#">Next</a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </section>
+
+    <div class="container">
+      <!-- Loading state UI -->
+      <div id="loader" class="alert alert-secondary visually-hidden">Loading...</div>
+
+      <!-- Error state UI -->
+      <div id="error" class="alert alert-danger visually-hidden">
+        <h5>Unable to load feed</h5>
+        <!-- Show error message, if applicable -->
+        Feed could not be converted, probably not a valid RSS feed.<br>
+        <small><a href="#">Open feed in a new tab</a></small>
+      </div>
+
+      <!-- Feed (Show no more than 5 posts per page) -->
+      <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3 cardlist">
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div id="pagination-container"></div>
+  </div>
+
+
+
+
+  <script>
+    var App = {};
+    App.notify = function (type, message) {
+      //you can wrap here any notification library you have (e.g. toastr, etc)
+      //alert(type + '! ' + message)
+      console.log(type + '! ' + message);
+    };
+    App.getErrorMessage = function (jqxhr, exception) {
+      if (jqxhr.status === 0) {
+        return 'Can not connect to server. Please check your network connection';
+      } else if (jqxhr.status == 404) {
+        return 'Requested page not found. Error - 404';
+      } else if (jqxhr.status == 401) {
+        return 'Not authorized!';
+      } else if (exception === 'parsererror') {
+        return 'Requested JSON parse failed.';
+      } else if (exception === 'timeout') {
+        return 'Request Time out error.';
+      } else if (exception === 'abort') {
+        return 'Request aborted.';
+      } else {
+        return 'Uncaught Error.n' + jqxhr.responseText;
+      }
+    };
+
+    $(function () {
+
+      $("#bbc").click(function (event) {
+        var url = $('#bbc').attr('data-url');
+        makeAjaxCall(url)
+        $("a").removeClass("btn-primary");
+        $(this).addClass("btn-primary");
+      });
+      $("#buzz").click(function (event) {
+        var url = $('#buzz').attr('data-url');
+        makeAjaxCall(url)
+        $("a").removeClass("btn-primary");
+        $(this).addClass("btn-primary");
+      });
+      $("#flip").click(function (event) {
+        var url = $('#flip').attr('data-url');
+        makeAjaxCall(url)
+        $("a").removeClass("btn-primary");
+        $(this).addClass("btn-primary");
+      });
+      $("#ft").click(function (event) {
+        var url = $('#ft').attr('data-url');
+        makeAjaxCall(url)
+        $("a").removeClass("btn-primary");
+        $(this).addClass("btn-primary");
+      });
+
+      function makeAjaxCall(uri) {
+        $('#loader').removeClass('visually-hidden');
+        $('#error').addClass('visually-hidden');
+        $.ajax({
+          type: 'get',
+          url: uri,
+          dataType: "xml",
+          success: function (data) {
+            $('#loader').addClass('visually-hidden');
+            let arr = []
+            $(data).find('channel').children().each(function () {
+              var title = $(this).find('title').text();
+              var description = $(this).find('description').text();
+              var link = $(this).find('link').text();
+              var image = $(this).children().find('image').text();
+              var date = $(this).find('pubDate').text();
+              if (!title)
+                return
+              let d = date ? moment(date).format("MMM Do YY") : ''
+              arr.push({ title, description, link, image, date: d })
+            });
+            generateDom(arr)
+          },
+          error: function (jqxhr, exception) {
+            $('#loader').addClass('visually-hidden');
+            $('#error').removeClass('visually-hidden');
+            $('.cardlist').empty();
+          },
+        });
+      }
+      function generateDom(arr) {
+        $('.cardlist').empty();
+        arr.forEach(ele => {
+          var elm = `
+              <div class="card shadow-sm">
+                <div class='card-body'>
+                  <p>${ele.description}</p>
+                  <h5>${ele.title}</h5>
+                  <p><a href="${ele.link}">Read more &rarr;</a></p>
+                  <p class="">${ele.date}</p>
+                </div>
+              </div>`;
+          $('.cardlist').append(elm);
+        });
+        generatePages()
+
+      }
+      function generatePages() {
+        var items = $(".cardlist .card");
+        var numItems = items.length;
+        var perPage = 5;
+        items.slice(perPage).hide();
+        $('#pagination-container').pagination({
+          items: numItems,
+          itemsOnPage: perPage,
+          prevText: "&laquo;",
+          nextText: "&raquo;",
+          onPageClick: function (pageNumber) {
+            var showFrom = perPage * (pageNumber - 1);
+            var showTo = showFrom + perPage;
+            items.hide().slice(showFrom, showTo).show();
+          }
+        });
+      }
+
+    });
+  </script>
+
+</body>
+
+</html>
